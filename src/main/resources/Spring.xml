@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/shcema/beans/spring-beans.xsd"
+        default-init-method="init"
+        default-destroy-method="destroy">
+    <!-- 为了与容器中bean生命周期的管理进行交互，你可以实现Spring的InitializingBean和DisposableBean接口。当初始化bean时
+    容器会调用InitializingBean中的afterPropertiesSet方法，当销毁beans时容器会调用DisposableBean中的destroy方法，在这2个
+    方法中bean可以执行特定的行为。
+    在现在应用中，通常认为JSR-250的@PostConstruct和@PreDestroy注解是最佳实践接收生命周期的方法，使用这些注解意味你的bean
+    没有耦合Spring特定的接口。除了初始化回调函数和销毁回调函数之外，Spring管理的对象也可以实现Lifecycle接口，这些对象可以
+    参与容器自身生命周期驱动的启动和关闭过程。
+    建议不使用InitializingBean接口，因为他对代码与Spring进行了不必要的耦合。作为一种替代方法，你可以使用@PostConstruct注解
+    或制定一个POJO的初始化方法。在基于XML配置元数据的情况下，你可以使用init-method特性来指定方法的名称，方法时没有返回值
+    和参数的。如果使用@Bean的initMethod特性，请看“接收生命周期回调函数”小节，以下代码和AnotherExampleBean是等价的-->
+    <bean id="exampleInitBean" class="com.pansy.ExampleBean" init-method="init"/>
+    <!-- 销毁回调函数也相同-->
+    <bean id="exampleDestroyBean" class="com.pansy.ExampleBean2" destroy-method="cleanup"/>
+    <!-- 默认初始化和销毁方法，在beans元素上添加default-init-method属性，假设你的初始化回调方法名为init，销毁回调方法
+    名为destroy，你的类如DefaultBlogService-->
+    <bean id="blogDao" class="com.pansy.BlogDao"/>
+    <bean id="blogService" class="com.pansy.DefaultBlogService">
+        <property name="blogDao" ref="blogDao"/>
+    </bean>
+    <!-- 在Spring2.5开始，在控制bean的生命周期行为时，有三种选择：InitializingBean和DisposableBean回调接口；定制init接口
+    和destroy接口，@PostConstruct和@PreDestroy注解。在控制一个给定bean时你可以组合这些机制。
+    同一个bean配置了多生命周期机制，并有不同的初始化方法时，那么调用顺序如下：
+    先调用注解@PostConstruct
+    然后调用InitializingBean回调接口定义的afterPropertiesSet方法
+    最后调用定制配置的init方法
+    销毁回调函数调用顺序相同-->
+
+</beans>
