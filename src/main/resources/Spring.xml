@@ -29,6 +29,19 @@
     先调用注解@PostConstruct
     然后调用InitializingBean回调接口定义的afterPropertiesSet方法
     最后调用定制配置的init方法
-    销毁回调函数调用顺序相同-->
-
+    销毁回调函数调用顺序相同
+    -->
+    <!-- 当ApplicationContext创建一个实现org.springframework.context.ApplicationContextAware接口的对象实例时，这个实例
+    会提供一个ApplicationContext的引用，因此beans可以以编程的方式创建他们的ApplicationContext，通过ApplicationContext
+    接口，或通过将引用抛给这个接口的一个已知子类，例如ConfigurableApplicationContext，它暴露了额外的功能。一个方法是编程
+    式检索其他bean。有时这个能力是很有用的，但是通常你应该避免使用它，因为它耦合了Spring和代码，不能遵循控制反转的风格。
+    ApplicationContext的其它方法提供了对文件资源的访问，发布应用事件，访问MessageSource的功能。这些额外的特性讲在3.15小节
+    ApplicationContext的额外能力中讲述
+    从Spring2.5开始，自动装配是另一种可替代的获得ApplicationContext引用的方法。传统的constructor和byType自动装配模式可以
+    分别为构造器函数参数和setter方法参数提供ApplicationContext类型的依赖。更多的灵活性包括自动装配变量的能力和多参数方法
+    使用新的基于注解的自动装配特性。如果你这么做的话，ApplicationContext可以被自动装配到变量中，构造函数参数中和方法参数
+    中，如果讨论的变量，构造参数和方法有@Autowired注解，那么可以期待它是ApplicationContext类型。更多请看3.9.2小节
+    当ApplicationContext创建了一个实现了org.springframework,beans.factory.BeanFactory.BeanNameAware接口的类时，类中有相关
+    的对象定义中定义的名称的引用。在正常的bean属性填入之后，回调方法调用，但在初始化方法调用之前，例如InitializingBean的
+    afterPropertiesSet或一个定制的初始化方法-->
 </beans>
