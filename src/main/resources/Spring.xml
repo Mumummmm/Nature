@@ -44,4 +44,5 @@
     当ApplicationContext创建了一个实现了org.springframework,beans.factory.BeanFactory.BeanNameAware接口的类时，类中有相关
     的对象定义中定义的名称的引用。在正常的bean属性填入之后，回调方法调用，但在初始化方法调用之前，例如InitializingBean的
     afterPropertiesSet或一个定制的初始化方法-->
+    <!-- 其他Aware见文档3.6.3-->
 </beans>
