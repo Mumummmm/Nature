@@ -45,4 +45,37 @@
     的对象定义中定义的名称的引用。在正常的bean属性填入之后，回调方法调用，但在初始化方法调用之前，例如InitializingBean的
     afterPropertiesSet或一个定制的初始化方法-->
     <!-- 其他Aware见文档3.6.3-->
+
+    <!-- 3.7 Bean定义继承-->
+    <!-- Bean定义中可以包含许多配置信息，包括构造函数参数、属性值和容器的特定信息例如初始化方法，静态工厂方法名等等。子定义
+    继承父定义的配置信息。子定义可以覆盖一些值，或按需要添加一些值。使用父子bean定义可以保存许多类型。
+    如果你以编程方式使用ApplicationContext接口，那么子bean定义是通过ChildBeanDefinition定义来表示的。大多数用户不在这个层级
+    上使用，而是在一些像ClassPathXmlApplicationContext中声明式的配置bean定义。当你使用基于XML的配置元数据时，你可以使用parent
+    特性来指明一个子bean定义。在特性值中指定父bean-->
+    <!-- 如果子bean定义中没有指定要使用的bean类，则使用父定义中的bean类，但也可以覆盖它。在后一种情况下，子bean定义必须与父
+    bean定义协作，也就是说，必须接收父定义的属性值。-->
+    <bean id="inheritedTestBean" abstract="true" class="com.pansy.TestBean">
+        <property name="name" value="parent"/>
+        <property name="age" value="1"/>
+    </bean>
+    <bean id="inheritsWithDifferentClass" class="com.pansy.DerivedTestBean" parent="inheritedTestBean"
+          init-method="initialize">
+        <property name="name" value="override"/>
+    </bean>
+    <!-- 子bean定义可以继承作用域，构造函数参数，属性值，可以重写父方法，可以选择添加新值。你指定的任何作用域，初始化方法
+    析构方法，或静态工厂方法设置会覆盖父定义的设置。其余的设置都是从子定义中获取：依赖关系，自动装配模式，依赖检查，单例
+    延迟初始化。
+    -->
+    <!-- 前面的例子使用抽象特性将父bean定义显式的标记为abstract。如果父定义没有指定一个类，需要显示的将父bean定义abstract-->
+    <bean id="inheritedTestBeanWithoutClass" abstract="true">
+        <property name="name" value="parent"/>
+        <property name="age" value="1"/>
+    </bean>
+    <bean id="inheritsWithClass" class="com.pansy.DerivedTestBean2" parent="inheritedTestBeanWithoutClass"
+    init-method="initialize">
+        <property name="name" value="override"/>
+    </bean>
+    <!-- 父bean定义不能实例化，因为它不完整，并且它被显式的标记为abstract。当一个bean定义是abstract时，它只能是一个纯粹的
+    bean定义模板，作为一个为子定义服务的父定义。当试图使用一个abstract父定义时，如通过另一个bean的ref属性或通过父bean定义的
+    id为参数显式的调用getBean方法，会返回一个错误。类似的，容器内部的preInstantiateSingletons方法会忽略抽象bean定义。-->
 </beans>
