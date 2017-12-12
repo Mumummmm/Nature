@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/shcema/beans/spring-beans.xsd"
-        default-init-method="init"
-        default-destroy-method="destroy">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd"
+       default-init-method="init"
+       default-destroy-method="destroy">
     <!-- 为了与容器中bean生命周期的管理进行交互，你可以实现Spring的InitializingBean和DisposableBean接口。当初始化bean时
     容器会调用InitializingBean中的afterPropertiesSet方法，当销毁beans时容器会调用DisposableBean中的destroy方法，在这2个
     方法中bean可以执行特定的行为。
@@ -72,10 +73,37 @@
         <property name="age" value="1"/>
     </bean>
     <bean id="inheritsWithClass" class="com.pansy.DerivedTestBean2" parent="inheritedTestBeanWithoutClass"
-    init-method="initialize">
+          init-method="initialize">
         <property name="name" value="override"/>
     </bean>
     <!-- 父bean定义不能实例化，因为它不完整，并且它被显式的标记为abstract。当一个bean定义是abstract时，它只能是一个纯粹的
     bean定义模板，作为一个为子定义服务的父定义。当试图使用一个abstract父定义时，如通过另一个bean的ref属性或通过父bean定义的
     id为参数显式的调用getBean方法，会返回一个错误。类似的，容器内部的preInstantiateSingletons方法会忽略抽象bean定义。-->
+
+    <!-- 3.8 容器扩展点-->
+    <!-- BeanPostProcessor接口定义了回调方法，你可以实现这个方法来提供你自己的实例化逻辑，依赖解析逻辑等等。如果你想在Spring
+    容器完成实例化，配置和初始化bean之后实现一些定制的业务逻辑，你可以插入一个或多个BeanPostProcessor实现。你可以配置多个
+    BeanPostProcessor实例，通过设置Order属性来控制BeanPostProcessor的执行顺序。只有BeanPostProcessor实现了Order接口你才可以
+    设置这个属性;如果你编写了自己的BeanPostProcessor，你也应该考虑实现Order接口-->
+    <!-- org.springframework.beans.factory.config.BeanPostProcessor接口包含恰好两个回调方法。当这样一个类在容器中注册为后
+    处理器时，对于容器中创建的每一个bean实例，在容器初始化方法（例如InitializingBean的afterPropertiesSet方法和任何已声明的
+    初始化方法）被调用之前和任何bean回调函数之后，后处理器会从容器中得到一个回调函数。
+    ApplicationContext会自动检测任何配置元数据中定义的实现了BeanPostProcessor接口的Bean。为了能在后面bean创建时调用这些bean
+    ApplicationContext会将这些bean注册为后处理器，bean后处理器可以像其他bean一样在容器中进行部署。-->
+    <!-- 由于BeanPostProcessor需要早一点实例化，为了在上下文中初始化其他的beans，早期的类型检测是非常关键的。虽然推荐的注册
+    BeanPostProcessor的方法是通过ApplicationContext自动检测（像前面描述的那样），但也可以通过以编程方法使用ConfigurableBeanFactory
+    的addBeanPostProcessor方法来注册，这在注册之前需要评估条件逻辑或通过分层中的上下文来复制bean后处理器的情况下，是非常有用的。
+    注意以编程方式添加的BeanPostProcessor不需要Order接口。这种情况下注册顺序意味着执行顺序。注意以编程方式注册的BeanPostProcessor
+    是在那些通过自动检测注册的BeanPostProcessor之前进行处理，不管任何显示的顺序指定。
+    实现BeanPostProcessor接口的类是被特别的并被容器不同对待的。所有的BeanPostProcessor和它们直接引用的Beans在启动时进行实例
+    化，它们是ApplicationContext特定启动阶段的一部分。接下来，BeanPostProcessor以有序形式进行注册，并适用于容器中的所有更进
+    一步的beans。-->
+    <!-- 第一个例子阐述了基本用法-->
+    <bean id="exampleBean" class="com.pansy.ExampleBean"/>
+    <!-- when the above bean is instantiated, this custom BeanPostProcessor implementation will output the
+    fact to the system console-->
+    <bean class="com.pansy.InstantiationTracingBeanPostProcessor"></bean>
+    <!-- 使用回调函数接口或注解结合定制BeanPostProcessor实现是扩展Spring IOC容器的常见方法。一个例子是Spring的
+    RequiredAnnotationBeanPostProcessor 一个BeanPostProcessor实现附带在Spring发行中，它保证了标记有（任意）注解的Beans上的
+    JavaBean属性能真正的（配置成）通过值进行依赖注入-->
 </beans>

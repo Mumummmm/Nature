@@ -1,5 +1,6 @@
 package com.pansy;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -10,8 +11,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class Boot {
     public static void main(String[] args){
-        ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"Spring.xml"});
-
-        ctx.registerShutdownHook();
+//        ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"Spring.xml"});
+//        ctx.registerShutdownHook();
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("Spring.xml");
+        ExampleBean exampleBean = (ExampleBean) ctx.getBean("exampleBean");
+        System.out.println(exampleBean);
     }
 }
