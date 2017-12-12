@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:lang="http://www.springframework.org/schema/lang"
+       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans.xsd"
+        http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
        default-init-method="init"
        default-destroy-method="destroy">
     <!-- 为了与容器中bean生命周期的管理进行交互，你可以实现Spring的InitializingBean和DisposableBean接口。当初始化bean时
@@ -106,4 +106,55 @@
     <!-- 使用回调函数接口或注解结合定制BeanPostProcessor实现是扩展Spring IOC容器的常见方法。一个例子是Spring的
     RequiredAnnotationBeanPostProcessor 一个BeanPostProcessor实现附带在Spring发行中，它保证了标记有（任意）注解的Beans上的
     JavaBean属性能真正的（配置成）通过值进行依赖注入-->
+    <!-- 3.8.2 通过BeanFactoryPostProcessor定制配置元数据-->
+    <!-- 接下来我们要看到的扩展点是org.springframework.beans.factory.config.BeanFactoryPostProcessor。这个接口的语义与那些
+    BeanPostProcessor类似，但有一个主要的不同是：BeanFactoryPostProcessor可以操作配置元数据，也就是说，SpringIOC容器允许在
+    容器实例化除了BeanFactoryPostProcessor之外的任何beans之前，BeanFactoryPostProcessor读取配置元数据并可能修改它们。
+    你可以配置多个BeanFactoryPostProcessor，通过设置Order属性来控制执行顺序。ApplicationContext会自动检测任何部署在它之内的
+    实现了BeanFactoryPostProcessor接口的bean。在合适时间，它会使用这些beans作为bean工厂后处理器。你可以像任何使用的bean那样
+    部署这些后处理器beans-->
+    <!-- 例：类名替换PropertyPlaceholderConfigurer-->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="classpath:jdbc.properties"/>
+    </bean>
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${driverClassName}"/>
+        <property name="url" value="${url}"/>
+        <property name="username" value="${username}"/>
+        <property name="password" value="${password}"/>
+    </bean>
+    <!-- Spring2.5引入了上下文命名空间，可以通过专用配置元素配置属性占位符，在location特性可以提供一个或多个位置，用逗号分开-->
+    <context:property-placeholder location="jdbc.properties"></context:property-placeholder>
+    <!-- 你可以使用PropertyPlaceholderConfigurer替换类名，有时候非常有用，特别是运行时你必须选择一个特别的实现类的情况下。例如-->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="properties">
+            <value>custom.strategy.class=com.pansy.ExampleBean</value>
+        </property>
+    </bean>
+    <bean id="serviceStrategy" class="${custom.strategy.class}"/>
+    <!-- 例：PropertyOverrideConfigurer-->
+    <!-- PropertyOverrideConfigurer，另一个Bean工厂后处理器，类似于PropertyPlaceholderConfigurer，但不像后者，最初的定义
+    可以有默认值或Bean属性值没有值。如果一个覆写的Properties文件对于某个bean属性没有任何输入，会使用默认的上下文定义。
+    注意bean定义没有意识到被覆写，因此从xml定义文件中它不能立刻很明显的看出来在使用覆写的配置器。为了防止多个
+    PropertyOverrideConfigurer实例对同一个bean属性定义不同的值，根据覆写机制，使用最后一个定义的值。属性文件配置形式如下：
+    beanName.property=value
+    例如：
+    dataSource.driverClassName=com.mysql.jdbc.Driver
+    dataSource.url=jdbc:mysql:mydb
+    例子文件可以被包含名为dataSource的bean的容器定义使用，它有一个driverClassName和url属性。
+    混合属性命名也支持，除了最后被覆写的属性，只要路径的每部分都已经是非空（假设构造函数进行初始化）。
+    指定的覆写值总是字面值；他们不能转出bean引用。但XML bean定义中的初始值指定了一个bean引用时，这个规范也同样有效。
+    Spring2.5引入了上下文命名空间，可以用专用配置元素配置属性覆写-->
+    <context:property-override location="override.properties"></context:property-override>
+    <!-- 3.8.3 使用FactoryBean定制实例化逻辑-->
+    <!-- FactoryBean接口是Spring IOC的实例化逻辑可插入性的一个点。如果你有复杂的初始化代码，相比于大量冗余的XML代码，用JAVA
+    代码语言来表达会更好，那么你可以创建你自己的FactoryBean，在类里面编写复杂的初始化逻辑，并将你定制的FactoryBean插入到容器
+    中。
+    BeanFactory提供了三个方法：
+    Object getObject():返回一个工厂创建的对象实例。这个实例可能被共享，依赖于工厂是否返回一个单例或原型
+    boolean isSingleton():如果FactoryBean返回单例，返回true，否则返回false
+    Class getObjectType():返回getObject()方法返回的类型，如果类型不能提前知道则返回null-->
+    <!-- 当你需要向容器请求一个真正的FactoryBean实例本身来代替它产生的bean时，调用ApplicationContext的getBean()方法，bean的
+    id前面需要加上一个$符号，因此给定一个id为myBean的FactoryBean，在容器中调用getBean("myBean")，返回FactoryBean的产品，但
+    调用getBean("$myBean")会返回FactoryBean实例本身-->
 </beans>
